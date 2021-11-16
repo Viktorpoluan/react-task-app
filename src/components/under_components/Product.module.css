@@ -1,0 +1,21 @@
+
+.wrapper {
+    height: 1513px;
+    width: 1440px;
+}
+
+
+
+.gridProd{
+    margin-top: 88px;
+    display: grid;
+    grid-template-columns: 386px 386px 386px;
+    grid-template-rows: 444px;
+    grid-row-gap: 103px;
+    grid-column-gap: 40px;
+    column-width: auto;
+    box-sizing: content-box;
+    margin-left: 101px;
+}
+
+
