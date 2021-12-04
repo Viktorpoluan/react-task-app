@@ -128,9 +128,10 @@
     height: 52px;
     width: 52px;
     margin-left: 250px;
-    margin-top: -35px;
+    margin-top: -59px;
     cursor: pointer;
     opacity: 0%;
+    margin-bottom: -6px;
 }
 .color_choosen{
     height: 60px;
@@ -191,9 +192,9 @@
     font-size: 24px;
     line-height: 160%;
     align-items: center;
+    backface-visibility: hidden;
+    margin-bottom: -165px;
     color: #8D8F9A;
-    margin-top: -200px;
-    margin-bottom: 200px;
 }
 
 .tittle {
@@ -213,7 +214,6 @@
     order: 0;
     align-self: stretch;
     flex-grow: 0;
-    margin: 0px 0px;
     cursor: pointer;
 }
 
@@ -303,7 +303,13 @@
     left: 929px;
     top: 299px;
 }
-
+.img_prod{
+margin-bottom:20px
+}
+.img_prod img{
+    height: 338px;
+    max-width: 356px;
+}
 .wrapper_value {
     left: 929px;
     top: 273px;

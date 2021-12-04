@@ -53,8 +53,12 @@ class App extends React.Component {
         currentId: '$',
         currentName: 'USD',
         currentPicture: 0,
-        activeStateCart:false,
-        activeStateOverCart:false
+        activeStateCart: false,
+        activeStateOverCart: false,
+        arrs:[],
+        color: classes.wrapper_value,
+        chosen: classes.wrapper_chosen,
+        emptyCart:true
     }
     showData = () => this.props.data.loading === true ? console.log('Loading...') : this.props.data.categories[this.state.currentCategory].name.toUpperCase()
     showAllData = () => this.props.data.loading === true ? console.log('Loading...') : this.props.data.categories.map(arr => arr.name)
@@ -88,8 +92,26 @@ class App extends React.Component {
 
 
     showAllCategories = () => this.props.data.loading === true ? console.log('Loading...') : this.props.data.categories[this.state.currentCategory].products.map((prod, index) => {
-            return prod.inStock===true
-                ?<div key={index}  className={classes.products}><img src={prod.gallery[0]} alt={'pict'} style={{maxHeight: '338px', maxWidth: '356px'}}/>
+        return prod.inStock !== true
+            ? <div key={index} className={classes.products_stock}>
+                <div className={classes.stock}>OUT OF STOCK</div>
+                <div style={{height: '338px', width: '356px', display: 'contents'}}>
+                    <div className={classes.img_prod}>
+                        <img src={prod.gallery[0]} alt={'pict'}/>
+                    </div>
+                </div>
+                <div id={prod.id} className={classes.common}/>
+                <div id={'prod'} accessKey={'false'} className={classes.tittle}
+                     style={{cursor: 'default'}}> {prod.name}</div>
+                <div style={{cursor: 'default'}}
+                     className={classes.prices}>{this.state.currentId} {prod.prices.filter(i => i.currency === this.state.currentName).map(i => i.amount)}</div>
+            </div>
+            : <div key={index} className={classes.products}>
+                <div style={{height: '338px', width: '356px', display: 'contents'}}>
+                    <div className={classes.img_prod}>
+                        <img src={prod.gallery[0]} alt={'pict'}/>
+                    </div>
+                </div>
                 <div id={prod.id} accessKey={this.props.data.categories[this.state.currentCategory].name}
                      className={classes.common}
                      onClick={(event) => {
@@ -103,26 +125,20 @@ class App extends React.Component {
                              this.setState({
                                  counterCart: this.state.counterCart + 1
                              })
+                             this.setState({emptyCart:false})
                          }
                      }
                      }
                 />
-            <div id={'prod'} className={classes.tittle}> {prod.name}</div>
-            <div className={classes.prices}>{this.state.currentId} {prod.prices.filter(i => i.currency === this.state.currentName).map(i => i.amount)}</div>
-        </div>
-                :<div key={index}  className={classes.products_stock}>
-                    <img src={prod.gallery[0]} alt={'pict'} style={{maxHeight: '338px', maxWidth: '356px'}}/>
-                    <div className={classes.stock}>OUT OF STOCK</div>
-                        <div id={prod.id}
-                         className={classes.common}
-                    />
-                    <div id={'prod'} className={classes.tittle}> {prod.name}</div>
-                    <div className={classes.prices}>{this.state.currentId} {prod.prices.filter(i => i.currency === this.state.currentName).map(i => i.amount)}</div>
-                </div>
+                <div id={'prod'} accessKey={'true'} className={classes.tittle}> {prod.name}</div>
+                <div
+                    className={classes.prices}>{this.state.currentId} {prod.prices.filter(i => i.currency === this.state.currentName).map(i => i.amount)}</div>
+            </div>
     })
 
     onclick = (event) => {
-        if (event.target.innerText && event.target.id === 'prod') {
+        // console.log(event)
+        if (event.target.innerText && event.target.id === 'prod' && event.target.accessKey === 'true') {
             this.setState({
                 name: event.target.innerText
             })
@@ -142,13 +158,28 @@ class App extends React.Component {
             })
         }
     }
-    // for personal prod onClick
+    clearCart=()=>{
+        this.setState({emptyCart:true})
+        this.nullArr(this.state.cart.selectedNames)
+        this.nullArr(this.state.cart.selectedItems)
+        this.nullArr(this.state.cart.cartProductsName)
+        this.nullArr(this.state.cart.cartProductsId)
+        this.setState({counterCart: 0})
+    }
 
-    //========================================push to cart========================================================================////
-    // filterItem = (id) => {
-    //     this.state.cart.selectedItems.push(id)
-    //     console.log(this.state.cart.selectedItems)
-    // }
+    getRandomId=(min, max)=> {
+        return Math.random() * (max - min) + min;
+    }
+    chosenStyle = (value, name) => {
+        let isActives = false
+        for (let i = 0; i < this.state.cart.selectedNames.length; i++) {
+            for (let a = 0; a < this.state.cart.selectedNames[i].length; a++) {
+                if((value+name === this.state.cart.selectedNames[i][a].value+this.state.cart.selectedNames[i][a].name)){
+                    return !isActives
+                }
+            }
+        }
+    }
     filterProduct = () => {
         function gallery(arr) {
             let arr1 = []
@@ -157,12 +188,13 @@ class App extends React.Component {
             }
             return arr1
         }
+
         const data = this.props.data
         if (!data.loading) {
-            return data.categories[this.state.currentCategory].products.filter(el => el.name === this.state.name).map((i, index) => {
+            return data.categories[this.state.currentCategory].products.filter(el => el.name === this.state.name).map((elem, index) => {
                 return <div key={index} className={classes.wrapper_filter}>
                     <div style={{flexDirection: 'column'}}>
-                        {gallery(i.gallery).map((i, index) => {
+                        {gallery(elem.gallery).map((i, index) => {
                             return <div><img onMouseEnter={() => this.setState({currentPicture: index})}
                                              onMouseLeave={() => this.setState({currentPicture: 0})}
                                              key={index}
@@ -170,77 +202,92 @@ class App extends React.Component {
                                              style={{height: '87px', marginBottom: '33px', cursor: 'pointer'}}/></div>
                         })}
                     </div>
-                    <div className={classes.i_img}><img src={i.gallery[this.state.currentPicture]} alt={'pict'}/></div>
+                    <div className={classes.i_img}><img src={elem.gallery[this.state.currentPicture]} alt={'pict'}/></div>
                     <div className={classes.main}>
-                        <div className={classes.prod_name}>{i.name}</div>
-                        <div className={classes.item_box}>{i.attributes.map((item, index) => {
+                        <div className={classes.prod_name}>{elem.name}</div>
+                        <div className={classes.item_box}>{elem.attributes.map((item, index) => {
                             return <div key={index}>
                                 <div className={classes.item_name}>{item.name.toUpperCase()}:</div>
                                 <div className={classes.item_pos}>
                                     {item.items.map(i => {
                                             return <div>
                                                 {item.name === 'Color'
-                                                    ? <div id={i.value+item.name}
+                                                    ? <div id={i.value + item.name}
                                                            style={{
-                                                               border:'1px solid black',
-                                                        backgroundColor: i.value
-                                                    }}
+                                                               border: '1px solid black',
+                                                               backgroundColor: i.value
+                                                           }}
                                                            className={classes.wrapper_value}
-                                                           onClick={()=>{
-                                                               console.log(i.value, item.name)
-                                                               let divId = document.getElementById(i.value+item.name)
-                                                                   if (this.state.cart.selectedItems.length === 0) {
-                                                                   this.setState({
-                                                                       selectedItems: this.state.cart.selectedItems.push({
-                                                                           name: item.name,
-                                                                           value: i.value
-                                                                       })
-                                                                   })
-                                                                       divId.className=classes.color_choosen
-                                                               } else {
-                                                                   this.setState({
-                                                                       selectedItems: this.state.cart.selectedItems.push({
-                                                                           name: item.name,
-                                                                           value: i.value
-                                                                       })
-                                                                   })
-                                                                       divId.className=classes.color_choosen
-                                                                   for (let i = 1; i < this.state.cart.selectedItems.length; i++) {
-                                                                       if (item.name === this.state.cart.selectedItems[i - 1].name) {
-                                                                           this.state.cart.selectedItems.splice([i - 1], 1)
-                                                                       }
-                                                                   }
-                                                               }
-                                                             }
-                                                           }>{' '}</div>
-                                                    : <div id={i.value + item.name}
-                                                           className={classes.wrapper_value}
-                                                           style={{minWidth:'63px', minHeight:'45px', marginTop:'10px', marginRight:'12px'}}
-                                                           onClick={()=>{
+                                                           onClick={() => {
+                                                               console.log(this.state.arrs)
                                                                let divId = document.getElementById(i.value + item.name)
+
                                                                if (this.state.cart.selectedItems.length === 0) {
                                                                    this.setState({
                                                                        selectedItems: this.state.cart.selectedItems.push({
                                                                            name: item.name,
-                                                                           value: i.value
+                                                                           value: i.value,
+                                                                           id:elem.id
                                                                        })
                                                                    })
-                                                                   divId.className=classes.wrapper_chosen
+                                                                   divId.className = classes.color_choosen
                                                                } else {
                                                                    this.setState({
                                                                        selectedItems: this.state.cart.selectedItems.push({
                                                                            name: item.name,
-                                                                           value: i.value
+                                                                           value: i.value,
+                                                                           id:elem.id
+
                                                                        })
                                                                    })
-                                                                   divId.className=classes.wrapper_chosen
+                                                                   divId.className = classes.color_choosen
                                                                    for (let i = 1; i < this.state.cart.selectedItems.length; i++) {
                                                                        if (item.name === this.state.cart.selectedItems[i - 1].name) {
                                                                            this.state.cart.selectedItems.splice([i - 1], 1)
                                                                        }
                                                                    }
                                                                }
-                                                               console.log(this.state.cart.selectedItems)
+                                                           }
+                                                           }>{' '}</div>
+                                                    : <div id={i.value + item.name}
+                                                           className={this.state.color}
+                                                           style={{
+                                                               minWidth: '63px',
+                                                               minHeight: '45px',
+                                                               marginTop: '10px',
+                                                               marginRight: '12px'
+                                                           }}
+                                                           onClick={() => {
+                                                               let divId = document.getElementById(i.value + item.name)
+
+                                                               if (this.state.cart.selectedItems.length === 0) {
+                                                                   this.setState({
+                                                                       selectedItems: this.state.cart.selectedItems.push({
+                                                                           name: item.name,
+                                                                           value: i.value,
+                                                                           id: elem.id,
+                                                                           counter: this.state.counterCart
+                                                                       })
+                                                                   })
+                                                                   divId.className = this.state.chosen
+                                                               } else {
+                                                                   this.setState({
+                                                                       selectedItems: this.state.cart.selectedItems.push({
+                                                                           name: item.name,
+                                                                           value: i.value,
+                                                                           id: elem.id,
+                                                                           counter: this.state.counterCart
+                                                                       })
+                                                                   })
+                                                                   divId.className = classes.wrapper_chosen
+                                                                   for (let i = 1; i < this.state.cart.selectedItems.length; i++) {
+                                                                       if (item.name === this.state.cart.selectedItems[i - 1].name) {
+                                                                           this.state.cart.selectedItems.splice([i - 1], 1)
+                                                                       }
+
+
+                                                                   }
+                                                               }
                                                            }
                                                            }
                                                     >
@@ -257,7 +304,7 @@ class App extends React.Component {
                         <div className={classes.price}>
                             PRICE:
                         </div>
-                        <div>{this.state.currentId} {i.prices.filter(i => i.currency === this.state.currentName).map(i => i.amount)}</div>
+                        <div>{this.state.currentId} {elem.prices.filter(i => i.currency === this.state.currentName).map(i => i.amount)}</div>
                         <div onClick={(event) => {
                             if (event.target.id) {
                                 this.setState({cartProductsName: this.state.cart.cartProductsName.push(event.target.accessKey)})
@@ -265,19 +312,18 @@ class App extends React.Component {
                                 this.setState({counterCart: this.state.counterCart + 1})
                                 this.setState({selectedNames: this.state.cart.selectedNames.push(this.state.cart.selectedItems.concat())})
                                 this.setState({selectedItems: this.nullArr(this.state.cart.selectedItems)})
+                                this.setState({emptyCart:false})
                             }
                         }}>
-                            <button className={classes.button_add} id={i.id}
+                            <button className={classes.button_add} id={elem.id}
                                     accessKey={data.categories[this.state.currentCategory].name}>
                                 ADD TO CART
                             </button>
                         </div>
-                        <div className={classes.text_desc}>{ReactHtmlParser(i.description)}</div>
+                        <div className={classes.text_desc}>{ReactHtmlParser(elem.description)}</div>
                     </div>
                 </div>
             })
-        } else {
-            console.log('else...')
         }
     }
     showCart = () => {
@@ -287,16 +333,12 @@ class App extends React.Component {
         } else {
             function counterQ(arr, arr2) {
                 const _cart = []
-                for (let i = 0; i < arr.length; i++) {
-                    _cart.push(data.categories.filter(el => el.name === arr[i])[0].products.filter(el => el.id === arr2[i]))
-                }
-                return _cart
+                    for (let i = 0; i < arr.length; i++) {
+                        _cart.push(data.categories.filter(el => el.name === arr[i])[0].products.filter(el => el.id === arr2[i])[0])
+                    }
+                    return _cart
             }
-            const arrProd = []
-            for (let i = 0; i < counterQ(this.state.cart.cartProductsName, this.state.cart.cartProductsId).length; i++) {
-                arrProd.push(counterQ(this.state.cart.cartProductsName, this.state.cart.cartProductsId)[i][0])
-            }
-            return arrProd
+            return counterQ(this.state.cart.cartProductsName, this.state.cart.cartProductsId)
         }
     }
     activator = () => {
@@ -307,6 +349,7 @@ class App extends React.Component {
     }
 
     render() {
+        console.log(this.showCart())
         return (
             <>
                 <header>
@@ -330,25 +373,27 @@ class App extends React.Component {
                                 />
                                 : null
                             }
-                            <div className={classes.empty_cart} onClick={() =>{
-                                
+                            <div className={classes.empty_cart} onClick={() => {
                                 this.setState({
                                     isActives: true
                                 })
-                            } }
-                                 onMouseEnter={() =>{
+                            }}
+                                 onMouseEnter={() => {
                                      this.activator()
-                                 } }
+                                 }}
                             />
                             {this.state.isActiveOverCart
                                 ?
                                 <OverlayCart activator={this.activator}
-                                               deactivator={this.deactivator}
-                                               showCart={this.showCart()}
-                                               counterCart={this.state.counterCart}
-                                               currentName={this.state.currentName}
-                                               currentId={this.state.currentId}
-                                               selectedNames={this.state.cart.selectedNames}
+                                             deactivator={this.deactivator}
+                                             showCart={this.showCart()}
+                                             counterCart={this.state.counterCart}
+                                             currentName={this.state.currentName}
+                                             currentId={this.state.currentId}
+                                             selectedNames={this.state.cart.selectedNames}
+                                             emptyCart={this.state.emptyCart}
+                                             clearCart={this.clearCart}
+                                             chosenStyle={this.chosenStyle}
                                 />
                                 : null
                             }
@@ -367,10 +412,13 @@ class App extends React.Component {
                 </header>
                 {this.state.isActives
                     ? <Cart
+                        emptyCart={this.state.emptyCart}
+                        clearCart={this.clearCart}
                         currentName={this.state.currentName}
                         currentId={this.state.currentId}
                         showCart={this.showCart()}
                         selectedNames={this.state.cart.selectedNames}
+                        count={this.state.count}
                         isActiveOverCart={this.state.isActiveOverCart}
                         activeStateCart={this.state.activeStateCart}
                         activeStateOverCart={this.state.activeStateOverCart}

@@ -164,11 +164,20 @@
     min-height: 28px;
     margin-right: 8px;
     display: inline-block;
-    /*border: 1px solid #1D1F22;*/
-    box-sizing: border-box;
+    /*!*border: 1px solid #1D1F22;*!*/
+    /*box-sizing: border-box;*/
     margin-top:5px;
 }
-
+.color_choosen {
+    height: 28px;
+    border: 1px solid black;
+    width: 28px;
+    opacity: 100%;
+}
+.colors {
+    border: 1px solid black;
+    opacity: 50%;
+}
 .item_value {
     min-width: 28px;
     max-height: 28px;
@@ -202,6 +211,6 @@
     align-items: center;
     text-align: center;
     color: #ffffff;
-    padding: 4px;
     background-color: black;
+    padding: 4px;
 }
